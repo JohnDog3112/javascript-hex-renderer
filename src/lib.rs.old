@@ -1,0 +1,477 @@
+use hex_renderer::grids::HexGrid;
+use hex_renderer::grids::GridDraw;
+use wasm_bindgen::prelude::wasm_bindgen;
+
+#[wasm_bindgen]
+extern "C" {
+    fn alert(s: &str);
+}
+
+#[wasm_bindgen]
+extern "C" {
+    pub type Color;
+
+    #[wasm_bindgen(method, getter)]
+    pub fn get(this: &Color) -> Vec<u8>;
+}
+
+impl From<Color> for hex_renderer::Color {
+    fn from(value: Color) -> Self {
+        let colors = value.get();
+        Self::from_rgba8(colors[0], colors[1], colors[2], colors[3])
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    pub type Marker;
+    #[wasm_bindgen(method, getter = color)]
+	fn get_color(this: &Marker) -> Color;
+
+    #[wasm_bindgen(method, getter = radius)]
+	fn get_radius(this: &Marker) -> f32;
+}
+
+impl From<Marker> for hex_renderer::options::Marker {
+    fn from(value: Marker) -> Self {
+        Self {
+            color: value.get_color().into(),
+            radius: value.get_radius(),
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    pub type Point;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &Point) -> u8;
+
+    #[wasm_bindgen(method, getter = first)]
+	fn get_first(this: &Point) -> Marker;
+
+    #[wasm_bindgen(method, getter = second)]
+	fn get_second(this: &Point) -> Marker;
+
+}
+
+impl From<Point> for hex_renderer::options::Point {
+    fn from(value: Point) -> Self {
+        match value.get_type() {
+            0 => Self::None,
+            1 => Self::Single(value.get_first().into()),
+            2 => Self::Double{
+                inner: value.get_first().into(),
+                outer: value.get_second().into(),
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type Triangle;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &Triangle) -> u8;
+
+    #[wasm_bindgen(method, getter = radius)]
+	fn get_radius(this: &Triangle) -> f32;
+
+    #[wasm_bindgen(method, getter = border)]
+	fn get_border(this: &Triangle) -> Marker;
+}
+
+impl From<Triangle> for hex_renderer::options::Triangle {
+    fn from(value: Triangle) -> Self {
+        match value.get_type() {
+            0 => Self::None,
+            1 => Self::Match {
+                radius: value.get_radius()
+            },
+            2 => Self::BorderMatch { 
+                match_radius: value.get_radius(), 
+                border: value.get_border().into()
+            },
+            3 => Self::BorderStartMatch { 
+                match_radius: value.get_radius(), 
+                border: value.get_border().into()
+            },
+            _ => unimplemented!(),
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type OverloadOptions;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &OverloadOptions) -> u8;
+
+    #[wasm_bindgen(method, getter = color)]
+	fn get_color(this: &OverloadOptions) -> Color;
+
+    #[wasm_bindgen(method, getter = label)]
+	fn get_label(this: &OverloadOptions) -> Marker;
+
+}
+
+impl From<OverloadOptions> for hex_renderer::options::OverloadOptions {
+    fn from(value: OverloadOptions) -> Self {
+        match value.get_type() {
+            0 => Self::Dashes(value.get_color().into()),
+            1 => Self::LabeledDashes { 
+                color: value.get_color().into(), 
+                label: value.get_label().into(), 
+            },
+            2 => Self::MatchedDashes,
+            _ => unimplemented!()
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type CollisionOption;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &CollisionOption) -> u8;
+
+    #[wasm_bindgen(method, getter = color)]
+	fn get_color(this: &CollisionOption) -> Color;
+
+    #[wasm_bindgen(method, getter = max_line)]
+	fn get_max_line(this: &CollisionOption) -> usize;
+
+    #[wasm_bindgen(method, getter = overload)]
+	fn get_overload(this: &CollisionOption) -> OverloadOptions;
+}
+
+impl From<CollisionOption> for hex_renderer::options::CollisionOption {
+    fn from(value: CollisionOption) -> Self {
+        match value.get_type() {
+            0 => Self::Dashes(value.get_color().into()),
+            1 => Self::MatchedDashes,
+            2 => Self::ParallelLines,
+            3 => Self::OverloadedParallel { 
+                max_line: value.get_max_line(), 
+                overload: value.get_overload().into() 
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type Lines;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &Lines) -> u8;
+
+    #[wasm_bindgen(method, getter = color)]
+	fn get_color(this: &Lines) -> Color;
+
+    #[wasm_bindgen(method, getter = colors)]
+	fn get_colors(this: &Lines) -> Vec<Color>;
+
+    #[wasm_bindgen(method, getter = bent)]
+	fn get_bent(this: &Lines) -> bool;
+
+    #[wasm_bindgen(method, getter = segments_per_color)]
+	fn get_segments_per_color(this: &Lines) -> usize;
+
+    #[wasm_bindgen(method, getter = triangles)]
+	fn get_triangles(this: &Lines) -> Triangle;
+
+    #[wasm_bindgen(method, getter = collisions)]
+	fn get_collisions(this: &Lines) -> CollisionOption;
+}
+
+impl From<Lines> for hex_renderer::options::Lines {
+    fn from(value: Lines) -> Self {
+        match value.get_type() {
+            0 => Self::Monocolor {
+                color: value.get_color().into(),
+                bent: value.get_bent(),
+            },
+            1 => Self::Gradient {
+                colors: value.get_colors().into_iter().map(|a| a.into()).collect(),
+                segments_per_color: value.get_segments_per_color(),
+                bent: value.get_bent(),
+            },
+            2 => Self::SegmentColors {
+                colors: value.get_colors().into_iter().map(|a| a.into()).collect(),
+                triangles: value.get_triangles().into(),
+                collisions: value.get_collisions().into(),
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type EndPoint;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &EndPoint) -> u8;
+
+    #[wasm_bindgen(method, getter = point)]
+	fn get_point(this: &EndPoint) -> Point;
+
+    #[wasm_bindgen(method, getter = radius)]
+	fn get_radius(this: &EndPoint) -> f32;
+
+    #[wasm_bindgen(method, getter = border)]
+	fn get_border(this: &EndPoint) -> Marker;
+}
+
+impl From<EndPoint> for hex_renderer::options::EndPoint {
+    fn from(value: EndPoint) -> Self {
+        match value.get_type() {
+            0 => Self::Point(value.get_point().into()),
+            1 => Self::Match {
+                radius: value.get_radius(),
+            },
+            2 => Self::BorderedMatch {
+                match_radius: value.get_radius(),
+                border: value.get_border().into(),
+            },
+            _ => unimplemented!(),
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type Intersections;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &Intersections) -> u8;
+
+    #[wasm_bindgen(method, getter = point)]
+	fn get_point(this: &Intersections) -> Point;
+
+    #[wasm_bindgen(method, getter = start)]
+	fn get_start(this: &Intersections) -> EndPoint;
+
+    #[wasm_bindgen(method, getter = end)]
+	fn get_end(this: &Intersections) -> EndPoint;
+
+    #[wasm_bindgen(method, getter = middle)]
+	fn get_middle(this: &Intersections) -> Point;
+}
+
+impl From<Intersections> for hex_renderer::options::Intersections {
+    fn from(value: Intersections) -> Self {
+        match value.get_type() {
+            0 => Self::Nothing,
+            1 => Self::UniformPoints(value.get_point().into()),
+            2 => Self::EndsAndMiddle {
+                start: value.get_start().into(),
+                end: value.get_end().into(),
+                middle: value.get_middle().into(),
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    type GridPatternOptions;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &GridPatternOptions) -> u8;
+
+    #[wasm_bindgen(method, getter = intersections)]
+	fn get_uniform_intersections(this: &GridPatternOptions) -> Intersections;
+
+    #[wasm_bindgen(method, getter = lines)]
+	fn get_uniform_lines(this: &GridPatternOptions) -> Lines;
+
+    #[wasm_bindgen(method, getter = intersections)]
+	fn get_changing_intersections(this: &GridPatternOptions) -> Vec<Intersections>;
+
+    #[wasm_bindgen(method, getter = lines)]
+	fn get_changing_lines(this: &GridPatternOptions) -> Vec<Lines>;
+
+    #[wasm_bindgen(method, getter = intros)]
+	fn get_intros(this: &GridPatternOptions) -> Vec<String>;
+
+    #[wasm_bindgen(method, getter = retros)]
+	fn get_retros(this: &GridPatternOptions) -> Vec<String>;
+}
+
+fn convert_to_angle(inp: &str) -> Result<Vec<hex_renderer::pattern_utils::Angle>, String> {
+    inp.chars().map(|ch| {
+        let angle: Result<hex_renderer::pattern_utils::Angle,_> = ch.try_into();
+        
+        angle.map_err(|_| format!("Invalid Angle ({ch})!"))
+    }).collect()
+}
+fn convert_to_angles(inp: &[String]) -> Result<Vec<Vec<hex_renderer::pattern_utils::Angle>>, String> {
+    inp.iter()
+    .map(|a| &a[..])
+    .map(convert_to_angle)
+    .collect()
+}
+
+impl TryFrom<GridPatternOptions> for hex_renderer::options::GridPatternOptions {
+    type Error = String;
+
+    fn try_from(value: GridPatternOptions) -> Result<Self, Self::Error> {
+        Ok(match value.get_type() {
+            0 => Self::Uniform(
+                value.get_uniform_intersections().into(),
+                value.get_uniform_lines().into(),
+            ),
+            1 => Self::Changing {
+                variations: value.get_changing_intersections().into_iter()
+                            .zip(value.get_changing_lines())
+                            .map(|(inter, line)| (inter.into(), line.into()))
+                            .collect(),
+                intros: convert_to_angles(&value.get_intros())?,
+                
+                retros: convert_to_angles(&value.get_retros())?,
+            },
+            _ => return Err("Invalid GridPatternOption!".to_string()),
+        })
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    pub type GridOptions;
+
+    #[wasm_bindgen(method, getter = line_thickness)]
+	fn get_line_thickness(this: &GridOptions) -> f32;
+
+    #[wasm_bindgen(method, getter = pattern_options)]
+	fn get_pattern_options(this: &GridOptions) -> GridPatternOptions;
+
+    #[wasm_bindgen(method, getter = center_dot)]
+	fn get_center_dot(this: &GridOptions) -> Point;
+}
+
+impl TryFrom<GridOptions> for hex_renderer::options::GridOptions {
+    type Error = String;
+
+    fn try_from(value: GridOptions) -> Result<Self, Self::Error> {
+        Ok(Self {
+            line_thickness: value.get_line_thickness(),
+            pattern_options: value.get_pattern_options().try_into()?,
+            center_dot: value.get_center_dot().into()
+        })
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    pub type PatternVariant;
+
+    #[wasm_bindgen(method, getter = type)]
+	fn get_type(this: &PatternVariant) -> u8;
+
+    #[wasm_bindgen(method, getter = angles)]
+	fn get_angles(this: &PatternVariant) -> String;
+
+    #[wasm_bindgen(method, getter = direction)]
+	fn get_direction(this: &PatternVariant) -> String;
+}
+
+
+impl TryFrom<PatternVariant> for hex_renderer::PatternVariant {
+    type Error = String;
+
+    fn try_from(value: PatternVariant) -> Result<Self, Self::Error> {
+        let direction: Result<hex_renderer::pattern_utils::Direction, _> = (&value.get_direction()[..]).try_into();
+
+        let pattern = hex_renderer::Pattern::new(
+            direction.map_err(|_| format!("Invalid direction ({})", value.get_direction()))?,
+            convert_to_angle(&value.get_angles())?
+        );
+
+        Ok(match value.get_type() {
+            0 => Self::Normal(pattern),
+            1 => Self::Monocolor(pattern),
+            _ => return Err("Invalid PatterVaritant!".to_string()),
+        })
+    }
+}
+
+#[wasm_bindgen]
+pub fn try_print(pattern: PatternVariant) {
+    alert(&format!("Pattern! {:?}", hex_renderer::PatternVariant::try_from(pattern)));
+}
+
+
+fn get_patterns(patterns: Vec<PatternVariant>) -> Result<Vec<hex_renderer::PatternVariant>, String> {
+    patterns
+        .into_iter()
+        .map(|a| {
+            let pattern: Result<hex_renderer::PatternVariant, String> = a.try_into();
+            pattern
+        }).collect()
+}
+
+#[wasm_bindgen]
+pub fn draw_hex_grid(grid_options: GridOptions, patterns: Vec<PatternVariant>, max_width: usize, scale: f32) -> Result<Vec<u8>, String> {
+
+    let patterns = get_patterns(patterns)?;
+
+    let grid_options: hex_renderer::options::GridOptions = grid_options.try_into()?;
+
+    alert(&format!("{:?}", grid_options.pattern_options));
+
+    let hex_grid = HexGrid::new(patterns, max_width);
+
+    let hex_grid = hex_grid.map_err(|_| "Failed to create grid!".to_string())?;
+
+    hex_grid.draw_grid_png(scale, &grid_options).map_err(|_| "Failed to draw grid!".to_string())
+}
+
+#[wasm_bindgen]
+pub fn draw_bound_hex_grid(grid_options: GridOptions, patterns: Vec<PatternVariant>, max_width: usize, width: f32, height: f32) -> Result<Vec<u8>, String> {
+
+    let patterns = get_patterns(patterns)?;
+
+    let grid_options: hex_renderer::options::GridOptions = grid_options.try_into()?;
+
+    let hex_grid = HexGrid::new(patterns, max_width);
+
+    let hex_grid = hex_grid.map_err(|_| "Failed to create grid!".to_string())?;
+
+    let scale = hex_grid.get_bound_scale((width, height), &grid_options);
+
+    hex_grid.draw_grid_png(scale, &grid_options).map_err(|_| "Failed to draw grid!".to_string())
+}
+
+#[wasm_bindgen]
+pub fn draw_square_grid(grid_options: GridOptions, patterns: Vec<PatternVariant>, max_width: usize, max_scale: f32, x_pad: f32, y_pad: f32, scale: f32) -> Result<Vec<u8>, String> {
+    let patterns = get_patterns(patterns)?;
+
+    let grid_options: hex_renderer::options::GridOptions = grid_options.try_into()?;
+
+    let square_grid = hex_renderer::grids::SquareGrid::new(patterns, max_width, max_scale, x_pad, y_pad).map_err(|_| "Failed to create grid!".to_string())?;
+
+    square_grid.draw_grid_png(scale, &grid_options).map_err(|_| "Failed to draw grid!".to_string())
+}
+
+#[wasm_bindgen]
+#[allow(clippy::too_many_arguments)]
+pub fn draw_bound_square_grid(grid_options: GridOptions, patterns: Vec<PatternVariant>, max_width: usize, max_scale: f32, x_pad: f32, y_pad: f32, width: f32, height: f32) -> Result<Vec<u8>, String> {
+    let patterns = get_patterns(patterns)?;
+
+    let grid_options: hex_renderer::options::GridOptions = grid_options.try_into()?;
+
+    let square_grid = hex_renderer::grids::SquareGrid::new(patterns, max_width, max_scale, x_pad, y_pad).map_err(|_| "Failed to create grid!".to_string())?;
+
+    let scale = square_grid.get_bound_scale((width, height), &grid_options);
+
+    square_grid.draw_grid_png(scale, &grid_options).map_err(|_| "Failed to draw grid!".to_string())
+}
