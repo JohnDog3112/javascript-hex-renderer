@@ -1,0 +1,14 @@
+{
+  "name": "hex_renderer_javascript",
+  "version": "0.1.0",
+  "files": [
+    "hex_renderer_javascript_bg.wasm",
+    "hex_renderer_javascript.js",
+    "hex_renderer_javascript.d.ts"
+  ],
+  "module": "hex_renderer_javascript.js",
+  "types": "hex_renderer_javascript.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
