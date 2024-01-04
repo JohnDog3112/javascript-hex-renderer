@@ -40,10 +40,6 @@ export function draw_square_grid(grid_options: any, patterns: any[], max_width: 
 * @returns {Uint8Array}
 */
 export function draw_bound_square_grid(grid_options: any, patterns: any[], max_width: number, max_scale: number, x_pad: number, y_pad: number, width: number, height: number): Uint8Array;
-/**
-* @returns {any}
-*/
-export function example(): any;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -53,7 +49,6 @@ export interface InitOutput {
   readonly draw_bound_hex_grid: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly draw_square_grid: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => void;
   readonly draw_bound_square_grid: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
-  readonly example: (a: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
