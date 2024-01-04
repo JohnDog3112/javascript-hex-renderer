@@ -323,3 +323,42 @@ const patterns: PatternVariant[] = [
         great_spell: false
     }
 ]
+
+
+
+const aaa: GridOptions = {
+    line_thickness: 0.12,
+    pattern_options: {
+        type: "Uniform",
+        intersections: {
+            type: "UniformPoints",
+            point: {
+                type: "Single",
+                marker: {
+                    color: [255, 255, 255, 255],
+                    radius: 0.07,
+                }
+            }
+        },
+        lines: {
+            type: "SegmentColors",
+            colors: [[255, 0, 0, 255]],
+            triangles: {
+                type: "BorderStartMatch",
+                match_radius: 0.16,
+                border: {
+                    color: [255, 255, 255, 255],
+                    radius: 0.25,
+                }
+            },
+            collisions: {
+                type: "Dashes",
+                color: [255, 0, 0, 255],
+            }
+        }
+    },
+
+    center_dot: {
+        type: "None"
+    }
+}

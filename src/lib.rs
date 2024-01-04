@@ -287,9 +287,9 @@ impl TryFrom<PatternVariantDef> for PatternVariant {
         let pattern = Pattern::new(direction, angle_sigs);
 
         Ok(if value.great_spell {
-            Self::Normal(pattern)
-        } else {
             Self::Monocolor(pattern)
+        } else {
+            Self::Normal(pattern)
         })
 
     }
@@ -363,33 +363,4 @@ pub fn draw_bound_square_grid(grid_options: JsValue, patterns: Vec<JsValue>, max
     let scale = square_grid.get_bound_scale((width, height), &grid_options);
 
     square_grid.draw_grid_png(scale, &grid_options).map_err(|_| "Failed to draw grid!".to_string())
-}
-
-#[wasm_bindgen]
-pub fn example() -> Result<JsValue, serde_wasm_bindgen::Error> {
-    let tmp = GridOptionsDef {
-        line_thickness: 0.12,
-        pattern_options: GridPatternOptionsDef::Uniform { 
-            intersections: IntersectionsDef::UniformPoints{
-                point: PointDef::Single{
-                    marker: MarkerDef {
-                        color: ColorDef(255, 255, 255, 255),
-                        radius: 0.07
-                    }
-                }
-            }, 
-            lines: LinesDef::Gradient { 
-                colors: vec![
-                    ColorDef(255, 0, 0, 255),
-                    ColorDef(0, 255, 0, 255),
-                    ColorDef(0, 0, 255, 255)
-                ], 
-                segments_per_color: 5, 
-                bent: true,
-            }
-        },
-        center_dot: PointDef::None,
-    };
-
-    serde_wasm_bindgen::to_value(&tmp)
 }
