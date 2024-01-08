@@ -416,3 +416,56 @@ pub fn draw_bound_square_grid(grid_options: GridOptions, patterns: PatternVarian
 
     square_grid.draw_grid_png(scale, &grid_options).map_err(|_| "Failed to draw grid!".to_string())
 }
+
+#[wasm_bindgen(skip_jsdoc)]
+/**
+Renders a single pattern bound to a certain image size.
+Almost equivalent to draw_bound_square_grid, however, it draws the pattern without padding for the segment renderer arrows.
+This allows for single patterns to not change in size if the renderer is all that changes.
+ 
+ @param {GridOptions} grid_options Options for drawing the patterns
+ @param {PatternVariant} pattern Pattern to draw
+ @parak {number} max_scale Maximum size for the pattern (percentage)
+ @param {number} width Maximum width of the output image
+ @param {number} height Maximum height of the output image
+ */
+pub fn draw_bound_pattern(grid_options: GridOptions, pattern: PatternVariant, max_scale: f32, width: f32, height: f32) -> Result<Vec<u8>, String> {
+    let grid_options: options::GridOptions = grid_options.try_into()?;
+
+    let pattern: hex_renderer::PatternVariant = pattern.try_into()?;
+
+
+    let mut alt_options = grid_options.clone();
+    
+    match &mut alt_options.pattern_options {
+        options::GridPatternOptions::Uniform(_, lines) => {
+            match lines {
+                options::Lines::Monocolor { color:_, bent:_ }
+                | options::Lines::Gradient { colors:_, segments_per_color:_, bent:_ } => (),
+                options::Lines::SegmentColors { colors:_, triangles, collisions:_ } => {
+                    *triangles = options::Triangle::None;
+                },
+            };
+        },
+        options::GridPatternOptions::Changing { variations, intros:_, retros:_ } => {
+            variations.iter_mut().for_each(|(_, lines)| {
+                match lines {
+                    options::Lines::Monocolor { color:_, bent:_ }
+                    | options::Lines::Gradient { colors:_, segments_per_color:_, bent:_ } => (),
+                    options::Lines::SegmentColors { colors:_, triangles, collisions:_ } => {
+                        *triangles = options::Triangle::None;
+                    },
+                };
+            });
+        },
+    };
+
+    
+    let square_grid = SquareGrid::new(vec![pattern], 10, max_scale, 0f32, 0f32).map_err(|_| "Failed to create grid!".to_string())?;
+
+    let scale = square_grid.get_bound_scale((width, height), &alt_options);
+
+    let grid = square_grid.draw_grid_with_padding(scale, &grid_options, alt_options.get_max_radius()).map_err(|_| "Failed to draw grid!".to_string())?;
+
+    grid.encode_png().map_err(|_| "Failed to encode grid!".to_string())
+}

@@ -93,9 +93,9 @@ dependencies = [
 
 [[package]]
 name = "hex_renderer"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6583e87bc8d19041db2fa7d9f95d41db823da94ab7f1d231a3a9fa5a7f7fc58c"
+checksum = "86a5cf15a15c3748c4397a447e8bbc908881faefb58804ba62e8abca4b595242"
 dependencies = [
  "lazy_static",
  "rusttype",
@@ -104,7 +104,7 @@ dependencies = [
 
 [[package]]
 name = "hex_renderer_javascript"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "hex_renderer",
  "serde",
