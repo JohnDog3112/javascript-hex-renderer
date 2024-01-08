@@ -425,7 +425,7 @@ This allows for single patterns to not change in size if the renderer is all tha
  
  @param {GridOptions} grid_options Options for drawing the patterns
  @param {PatternVariant} pattern Pattern to draw
- @parak {number} max_scale Maximum size for the pattern (percentage)
+ @param {number} max_scale Maximum size for the pattern (percentage)
  @param {number} width Maximum width of the output image
  @param {number} height Maximum height of the output image
  */

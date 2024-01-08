@@ -1,5 +1,8 @@
 # Hex Renderer
 A bridge librarary via wasm for [Hex Renderer](https://github.com/JohnDog3112/Hex-Renderer) and javascript
+The NPM package is available [here](https://www.npmjs.com/package/hex_renderer_javascript)
+
+If you want to use this on the web, the url for version 0.1.2 is [https://cdn.jsdelivr.net/npm/hex_renderer_javascript@0.1.2/hex_renderer_javascript.js](https://cdn.jsdelivr.net/npm/hex_renderer_javascript@0.1.2/hex_renderer_javascript.js)
 
 # Main Functions
 
@@ -26,6 +29,11 @@ function draw_bound_square_grid(grid_options: GridOptions, patterns: PatternVari
 ```
 The bound versions of Hex grid and Square grid are essentially the same as above. The only difference is that scale is replaced by width and height which specify the bounds the resulting image must fit in.
 
+## Single Pattern
+```ts
+function draw_bound_pattern(grid_options: GridOptions, pattern: PatternVariant, max_scale: number, width: number, height: number): Uint8Array;
+```
+Very similar to draw_bound_square_grid, except it only draws a single pattern. In addition, it does not add padding for the arrows/triangles in the segment renderer. This allows for the size of the different renderers be the same as long as everything else stays constant.
 
 # Patterns
 ```ts
