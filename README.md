@@ -2,7 +2,7 @@
 A bridge librarary via wasm for [Hex Renderer](https://github.com/JohnDog3112/Hex-Renderer) and javascript
 The NPM package is available [here](https://www.npmjs.com/package/hex_renderer_javascript)
 
-If you want to use this on the web, the url for version 0.1.2 is [https://cdn.jsdelivr.net/npm/hex_renderer_javascript@0.1.2/hex_renderer_javascript.js](https://cdn.jsdelivr.net/npm/hex_renderer_javascript@0.1.2/hex_renderer_javascript.js)
+If you want to use this on the web, the url for version 0.1.4 is [https://cdn.jsdelivr.net/npm/hex_renderer_javascript@0.1.4/hex_renderer_javascript.js](https://cdn.jsdelivr.net/npm/hex_renderer_javascript@0.1.4/hex_renderer_javascript.js)
 
 # Main Functions
 
